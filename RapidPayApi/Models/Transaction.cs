@@ -1,6 +1,6 @@
 ﻿namespace RapidPayApi.Models
 {
-    public class RapidPayTransaction
+    public class Transaction
     {
         public int TransactionId { get; set; }
         public int Id { get; set; }

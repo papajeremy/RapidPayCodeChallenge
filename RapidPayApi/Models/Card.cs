@@ -2,11 +2,11 @@
 
 namespace RapidPayApi.Models
 {
-    public class RapidPayCard
+    public class Card
     {
         public int Id { get; set; }
         public string CardNumber { get; set; } = string.Empty;
-        public DateOnly ExpirationDate { get; set; } = new DateOnly();
+        public DateTime ExpirationDate { get; set; }
         public double CardLimit { get; set; }
         public double Balance { get; set; }
         public string CardHolderFirstName { get; set; } = string.Empty;
@@ -14,6 +14,6 @@ namespace RapidPayApi.Models
         public string CompanyName { get; set; } = string.Empty;
         public DateTime CreatedDate { get; set; }
         public DateTime ModifiedDate { get; set; }
-        public bool Active { get; set; } = true;
+        public bool Active { get; set; }
     }
 }
