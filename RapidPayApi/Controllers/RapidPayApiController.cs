@@ -67,6 +67,7 @@ namespace RapidPayApi.Controllers
             if( card == null) return NotFound();
             TransactionDto newTransactionEntry = CreateTransactionEntry(transactionDto);
             card.Balance = card.Balance + newTransactionEntry.TransactionTotal;
+            //update modified date in card table
             return Ok( newTransactionEntry );
         }
 
