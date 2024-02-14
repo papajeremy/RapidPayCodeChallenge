@@ -4,8 +4,6 @@ namespace RapidPayApi.Models.Dto
 {    
     public class CardDto
     {
-        public int Id { get; set; }
-
         [Required]
         [StringLength( 15 )]
         public string CardNumber { get; set; } = string.Empty;
@@ -16,7 +14,7 @@ namespace RapidPayApi.Models.Dto
         [Required]
         public double CardLimit { get; set; }
 
-        public double Balance { get; set; }
+        public double Balance { get; }
 
         [Required]
         [MinLength( 2 )]
@@ -31,7 +29,5 @@ namespace RapidPayApi.Models.Dto
         [MinLength(5)]
         [MaxLength( 100 )]
         public string CompanyName { get; set; } = string.Empty;
-
-        public bool Active { get; set; } = true;
     }
 }

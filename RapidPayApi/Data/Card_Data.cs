@@ -11,33 +11,33 @@ namespace RapidPayApi.Data
             new CardDto { Id = 3, Active = true, Balance = 0, CardHolderFirstName = "Bruce", CardHolderLastName = "Li", CardLimit = 22000, CardNumber = "183729406560492", CompanyName = "New Avengers", ExpirationDate=new DateTime( 2025, 12, 31, 23, 59, 59 ) }
         };
 
-        public static List<TransactionDto> transactionList = new List<TransactionDto>
+        public static List<CardTransactionDto> transactionList = new List<CardTransactionDto>
         {
-            new TransactionDto { 
+            new CardTransactionDto { 
                 TransactionId = 1, 
                 TransactionAmount = 2000,
                 TransactionFee = 16.25,
                 TransactionDate = new DateTime( 2023, 08, 02, 13, 23, 34 ) 
             },
-            new TransactionDto { 
+            new CardTransactionDto { 
                 TransactionId = 2, 
                 TransactionAmount = 2500,
                 TransactionFee = 10.56,
                 TransactionDate = new DateTime( 2023, 12, 18, 16, 02, 52 ) 
             },
-            new TransactionDto { 
+            new CardTransactionDto { 
                 TransactionId = 1, 
                 TransactionAmount = 1500,
                 TransactionFee = 14.26,
                 TransactionDate = new DateTime( 2022, 04, 16, 10, 40, 41 ) 
             },
-            new TransactionDto { 
+            new CardTransactionDto { 
                 TransactionId = 2, 
                 TransactionAmount = 3500,
                 TransactionFee = 3.36,
                 TransactionDate = new DateTime( 2022, 09, 13, 09, 06, 08 ) 
             },
-            new TransactionDto { 
+            new CardTransactionDto { 
                 TransactionId = 3, 
                 TransactionAmount = 3000,
                 TransactionFee = 6.69,

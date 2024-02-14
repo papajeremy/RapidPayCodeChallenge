@@ -1,94 +1,114 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RapidPayApi.Data;
+using RapidPayApi.Models;
 using RapidPayApi.Models.Dto;
 using RapidPayApi.Services;
 
 namespace RapidPayApi.Controllers
 {
     [Authorize]
-    [Route("api/RapidPayApi")]
+    [Route( "api/RapidPayApi" )]
     [ApiController]
     public class RapidPayApiController : ControllerBase
     {
         private readonly PaymentFeeService _paymentFeeService;
+        private readonly RapidPayDbContext _dbContext;
 
-        public RapidPayApiController(PaymentFeeService paymentFeeService)
+        public RapidPayApiController( PaymentFeeService paymentFeeService, RapidPayDbContext dbContext )
         {
             _paymentFeeService = paymentFeeService;
+            _dbContext = dbContext;
         }
-        [HttpGet(Name = "GetCardBalance")]
+
+        [HttpGet( Name = "GetCardBalance" )]
         [ProducesResponseType( StatusCodes.Status200OK )]
         [ProducesResponseType( StatusCodes.Status400BadRequest )]
         [ProducesResponseType( StatusCodes.Status404NotFound )]
         public async Task<IActionResult> GetCardBalance( string cardNumber )
         {
             if ( cardNumber == null ) return BadRequest();
-            var card = Card_Data.cardList.FirstOrDefault(c=>c.CardNumber == cardNumber );
+            var card = await _dbContext.Cards.FirstOrDefaultAsync( c=>c.CardNumber == cardNumber );
             if ( card == null ) return NotFound();
             var cardBalance = card.Balance;
-            return Ok( $"CardBalance: {cardBalance}" );
+            return Ok( $"Card Balance: {card.Balance}" );  
         }
 
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType( StatusCodes.Status201Created )]
+        [ProducesResponseType( StatusCodes.Status400BadRequest )]
+        [ProducesResponseType( StatusCodes.Status404NotFound )]
         public async Task<IActionResult> CreateCardAsync( [FromBody] CardDto dto )
         {
             if ( dto == null ) return BadRequest( dto );
-            if ( Card_Data.cardList.FirstOrDefault(c=>c.Id == dto.Id) != null )
+            if ( await _dbContext.Cards.FirstOrDefaultAsync( c => c.CardNumber == dto.CardNumber ) != null )
             {
                 ModelState.AddModelError( "Duplicate Entry", "Card number already exists" );
             }
-            if(Card_Data.cardList
-                .FirstOrDefault(c=>c.CardHolderFirstName.ToLower() == dto.CardHolderFirstName.ToLower()) != null
-                && Card_Data.cardList
-                .FirstOrDefault(c=>c.CardHolderLastName.ToLower() == dto.CardHolderLastName.ToLower()) != null )
+            if ( await _dbContext.Cards
+                .FirstOrDefaultAsync( c => c.CardHolderFirstName.ToLower() == dto.CardHolderFirstName.ToLower() ) != null
+                && await _dbContext.Cards
+                .FirstOrDefaultAsync( c => c.CardHolderLastName.ToLower() == dto.CardHolderLastName.ToLower() ) != null )
             {
                 ModelState.AddModelError( "Duplicate Entry", "User account already exists" );
             }
-            if ( dto.Id > 0 ) return StatusCode( StatusCodes.Status500InternalServerError );
-            dto.Id = Card_Data.cardList.OrderByDescending( c => c.Id ).FirstOrDefault().Id + 1;
-            Card_Data.cardList.Add( dto );
-            return CreatedAtRoute("GetCardBalance", new { cardNumber = dto.CardNumber }, dto );
-        }        
+            Card card = new()
+            {
+                CardNumber = dto.CardNumber,
+                ExpirationDate = dto.ExpirationDate,
+                CardLimit = dto.CardLimit,
+                CardHolderFirstName = dto.CardHolderFirstName,
+                CardHolderLastName = dto.CardHolderLastName,
+                CompanyName = dto.CompanyName,
+                CreatedDate = DateTime.UtcNow,
+                ModifiedDate = DateTime.UtcNow,
+            };
+            _dbContext.Cards.Add( card );
+            await _dbContext.SaveChangesAsync();
+            return CreatedAtRoute( "GetCardBalance", new { cardNumber = dto.CardNumber }, dto );
+        }
 
         [HttpPut]
         [ProducesResponseType( StatusCodes.Status200OK )]
         [ProducesResponseType( StatusCodes.Status204NoContent )]
         [ProducesResponseType( StatusCodes.Status400BadRequest )]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> PayTransaction( [FromBody] TransactionDto transactionDto )
+        [ProducesResponseType( StatusCodes.Status404NotFound )]
+        public async Task<IActionResult> PayTransaction( [FromBody] CardTransactionDto transactionDto )
         {
-            if ( transactionDto == null 
-                || String.IsNullOrEmpty(transactionDto.CardNumber) 
+            if ( transactionDto == null
+                || String.IsNullOrEmpty( transactionDto.CardNumber )
                 || transactionDto.TransactionAmount == 0 ) return BadRequest();
-            var card = Card_Data.cardList.FirstOrDefault( c=>c.CardNumber == transactionDto.CardNumber );
-            if( card == null) return NotFound();
-            TransactionDto newTransactionEntry = CreateTransactionEntry(transactionDto);
+            var card = await _dbContext.Cards.FirstOrDefaultAsync( c=>c.CardNumber == transactionDto.CardNumber );
+            if ( card == null ) return NotFound();
+            CardTransaction newTransactionEntry = await CreateTransactionEntry(transactionDto);
+            if(card.Balance + newTransactionEntry.TransactionTotal > card.CardLimit ) return BadRequest( error: "Transaction is over the limit. Transaction aborted." );
+            _dbContext.CardTransactions.Add( newTransactionEntry );
             card.Balance = card.Balance + newTransactionEntry.TransactionTotal;
-            //update modified date in card table
+            card.ModifiedDate = DateTime.UtcNow;
+            _dbContext.Cards.Add( card );
+            await _dbContext.SaveChangesAsync();
             return Ok( newTransactionEntry );
         }
 
-        private TransactionDto CreateTransactionEntry( TransactionDto transactionDto )
+        private async Task<CardTransaction> CreateTransactionEntry( CardTransactionDto transactionDto )
         {
-            var lastTransaction = Card_Data.transactionList
-                .OrderByDescending(t=>t.TransactionDate).FirstOrDefault();
+            var lastTransaction = await _dbContext.CardTransactions
+                .OrderByDescending(t=>t.TransactionDate).FirstOrDefaultAsync();
             var randomTransactionFee = _paymentFeeService.RandomFee( lastTransaction.TransactionFee,
                 lastTransaction.TransactionDate );
-            TransactionDto transactionEntry = new ()
+            var card = await _dbContext.Cards.FirstOrDefaultAsync( c => c.CardNumber == transactionDto.CardNumber );
+            if ( card == null ) throw new KeyNotFoundException();
+            CardTransaction cardtransactionEntry = new ()
             {
-                TransactionId = Card_Data.transactionList.Max( t=>t.TransactionId ) + 1,
-                CardNumber = transactionDto.CardNumber,
+                CardId = card.Id,
                 TransactionAmount = transactionDto.TransactionAmount,
                 TransactionFee = randomTransactionFee,
                 TransactionTotal = transactionDto.TransactionAmount + randomTransactionFee,
                 TransactionDate = DateTime.UtcNow
             };
-            return transactionEntry;
+            return cardtransactionEntry;
         }
     }
 }

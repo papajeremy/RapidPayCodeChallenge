@@ -4,9 +4,9 @@ using RapidPayApi.Authentication;
 
 namespace RapidPayApi.Data
 {
-    public class IdentityContext : IdentityDbContext<RapidPayUser>
+    public class IdentityDbContext : IdentityDbContext<RapidPayUser>
     {
-        public IdentityContext(DbContextOptions<IdentityContext> options) 
+        public IdentityDbContext(DbContextOptions<IdentityDbContext> options) 
             : base(options)
         {            
         }

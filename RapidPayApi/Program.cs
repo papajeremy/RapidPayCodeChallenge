@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using RapidPayApi.Authentication;
@@ -20,7 +19,7 @@ builder.Services.AddDbContext<IdentityDbContext>(
 builder.Services.AddDbContext<RapidPayDbContext>(
     options => options.UseSqlServer( dbConnectionString ) );
 builder.Services.AddIdentity<RapidPayUser, IdentityRole>()
-    .AddEntityFrameworkStores<IdentityContext>()
+    .AddEntityFrameworkStores<IdentityDbContext>()
     .AddDefaultTokenProviders();
 builder.Services.AddAuthentication( options =>
 {
@@ -31,7 +30,7 @@ builder.Services.AddAuthentication( options =>
 {
     options.SaveToken = true;
     options.RequireHttpsMetadata = false;
-    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+    options.TokenValidationParameters = new TokenValidationParameters()
     {
         ValidateIssuer = true,
         ValidateAudience = true,

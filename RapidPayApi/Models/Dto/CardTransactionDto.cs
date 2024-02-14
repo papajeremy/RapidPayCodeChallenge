@@ -2,9 +2,9 @@
 
 namespace RapidPayApi.Models.Dto
 {
-    public class TransactionDto
+    public class CardTransactionDto
     {
-        public int TransactionId { get; set; }
+        public int CardTransactionId { get; set; }
         [Required]
         [StringLength(15)]
         public string CardNumber { get; set; } = string.Empty;
