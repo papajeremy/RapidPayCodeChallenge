@@ -13,11 +13,36 @@ namespace RapidPayApi.Data
 
         public static List<TransactionDto> transactionList = new List<TransactionDto>
         {
-            new TransactionDto { Id = 1, TransactionId = 1, Amount = 2000, TransactionDate = new DateTime( 2023, 08, 02, 13, 23, 34 ) },
-            new TransactionDto { Id = 1, TransactionId = 2, Amount = 2500, TransactionDate = new DateTime( 2023, 12, 18, 16, 02, 52 ) },
-            new TransactionDto { Id = 2, TransactionId = 1, Amount = 1500, TransactionDate = new DateTime( 2022, 04, 16, 10, 40, 41 ) },
-            new TransactionDto { Id = 2, TransactionId = 2, Amount = 3500, TransactionDate = new DateTime( 2022, 09, 13, 09, 06, 08 ) },
-            new TransactionDto { Id = 2, TransactionId = 3, Amount = 3000, TransactionDate = new DateTime( 2023, 01, 23, 12, 17, 23 ) },
+            new TransactionDto { 
+                TransactionId = 1, 
+                TransactionAmount = 2000,
+                TransactionFee = 16.25,
+                TransactionDate = new DateTime( 2023, 08, 02, 13, 23, 34 ) 
+            },
+            new TransactionDto { 
+                TransactionId = 2, 
+                TransactionAmount = 2500,
+                TransactionFee = 10.56,
+                TransactionDate = new DateTime( 2023, 12, 18, 16, 02, 52 ) 
+            },
+            new TransactionDto { 
+                TransactionId = 1, 
+                TransactionAmount = 1500,
+                TransactionFee = 14.26,
+                TransactionDate = new DateTime( 2022, 04, 16, 10, 40, 41 ) 
+            },
+            new TransactionDto { 
+                TransactionId = 2, 
+                TransactionAmount = 3500,
+                TransactionFee = 3.36,
+                TransactionDate = new DateTime( 2022, 09, 13, 09, 06, 08 ) 
+            },
+            new TransactionDto { 
+                TransactionId = 3, 
+                TransactionAmount = 3000,
+                TransactionFee = 6.69,
+                TransactionDate = new DateTime( 2023, 01, 23, 12, 17, 23 ) 
+            },
         };
     }
 }

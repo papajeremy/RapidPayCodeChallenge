@@ -2,7 +2,7 @@
 {
     public class PaymentFeeService
     {
-        public double RandomDecimal( double lastFeeAmount, DateTime lastFeeDateTime )
+        public double RandomFee( double lastFeeAmount, DateTime lastFeeDateTime )
         {
             if ( lastFeeAmount <= 0 )
             {
@@ -13,7 +13,7 @@
             Random rnd = new Random();
             while(numRandom == 0 )
             {
-                rnd.NextDouble();
+                numRandom = rnd.NextDouble();
             }
             var newFeeAmount = numRandom * 2 * lastFeeAmount;
             return newFeeAmount;

@@ -5,11 +5,13 @@ namespace RapidPayApi.Models.Dto
     public class TransactionDto
     {
         public int TransactionId { get; set; }
-        public int Id { get; set; }
-        [Required]        
+        [Required]
+        [StringLength(15)]
+        public string CardNumber { get; set; } = string.Empty;
+        [Required]
         public double TransactionAmount { get; set; }
         public double TransactionFee { get; set; }
         public double TransactionTotal { get; set; }
-        public DateTime TransactionDate { get; set; } = DateTime.Now;
+        public DateTime TransactionDate { get; set; }
     }
 }

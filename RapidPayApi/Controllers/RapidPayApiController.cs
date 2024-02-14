@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using RapidPayApi.Data;
 using RapidPayApi.Models.Dto;
+using RapidPayApi.Services;
 
 namespace RapidPayApi.Controllers
 {
@@ -8,7 +10,13 @@ namespace RapidPayApi.Controllers
     [ApiController]
     public class RapidPayApiController : ControllerBase
     {
-        [HttpGet]
+        private readonly PaymentFeeService _paymentFeeService;
+
+        public RapidPayApiController(PaymentFeeService paymentFeeService)
+        {
+            _paymentFeeService = paymentFeeService;
+        }
+        [HttpGet(Name = "GetCardBalance")]
         [ProducesResponseType( StatusCodes.Status200OK )]
         [ProducesResponseType( StatusCodes.Status400BadRequest )]
         [ProducesResponseType( StatusCodes.Status404NotFound )]
@@ -18,11 +26,10 @@ namespace RapidPayApi.Controllers
             var card = Card_Data.cardList.FirstOrDefault(c=>c.CardNumber == cardNumber );
             if ( card == null ) return NotFound();
             var cardBalance = card.Balance;
-            return Ok( cardBalance );
+            return Ok( $"CardBalance: {cardBalance}" );
         }
 
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -43,15 +50,42 @@ namespace RapidPayApi.Controllers
             if ( dto.Id > 0 ) return StatusCode( StatusCodes.Status500InternalServerError );
             dto.Id = Card_Data.cardList.OrderByDescending( c => c.Id ).FirstOrDefault().Id + 1;
             Card_Data.cardList.Add( dto );
-            return Ok( StatusCodes.Status201Created );
+            return CreatedAtRoute("GetCardBalance", new { cardNumber = dto.CardNumber }, dto );
         }        
 
         [HttpPut]
+        [ProducesResponseType( StatusCodes.Status200OK )]
         [ProducesResponseType( StatusCodes.Status204NoContent )]
         [ProducesResponseType( StatusCodes.Status400BadRequest )]
-        public async Task<IActionResult> PayTransaction( string cardNumber, double transactionAmount )
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> PayTransaction( [FromBody] TransactionDto transactionDto )
         {
+            if ( transactionDto == null 
+                || String.IsNullOrEmpty(transactionDto.CardNumber) 
+                || transactionDto.TransactionAmount == 0 ) return BadRequest();
+            var card = Card_Data.cardList.FirstOrDefault( c=>c.CardNumber == transactionDto.CardNumber );
+            if( card == null) return NotFound();
+            TransactionDto newTransactionEntry = CreateTransactionEntry(transactionDto);
+            card.Balance = card.Balance + newTransactionEntry.TransactionTotal;
+            return Ok( newTransactionEntry );
+        }
 
+        private TransactionDto CreateTransactionEntry( TransactionDto transactionDto )
+        {
+            var lastTransaction = Card_Data.transactionList
+                .OrderByDescending(t=>t.TransactionDate).FirstOrDefault();
+            var randomTransactionFee = _paymentFeeService.RandomFee( lastTransaction.TransactionFee,
+                lastTransaction.TransactionDate );
+            TransactionDto transactionEntry = new ()
+            {
+                TransactionId = Card_Data.transactionList.Max( t=>t.TransactionId ) + 1,
+                CardNumber = transactionDto.CardNumber,
+                TransactionAmount = transactionDto.TransactionAmount,
+                TransactionFee = randomTransactionFee,
+                TransactionTotal = transactionDto.TransactionAmount + randomTransactionFee,
+                TransactionDate = DateTime.UtcNow
+            };
+            return transactionEntry;
         }
     }
 }
