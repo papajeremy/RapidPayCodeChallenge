@@ -25,6 +25,7 @@ namespace RapidPayApi.Controllers
         [HttpGet( Name = "GetCardBalance" )]
         [ProducesResponseType( StatusCodes.Status200OK )]
         [ProducesResponseType( StatusCodes.Status400BadRequest )]
+        [ProducesResponseType( StatusCodes.Status401Unauthorized )]
         [ProducesResponseType( StatusCodes.Status404NotFound )]
         public async Task<IActionResult> GetCardBalance( string cardNumber )
         {
@@ -38,6 +39,7 @@ namespace RapidPayApi.Controllers
         [HttpPost]
         [ProducesResponseType( StatusCodes.Status201Created )]
         [ProducesResponseType( StatusCodes.Status400BadRequest )]
+        [ProducesResponseType( StatusCodes.Status401Unauthorized )]
         [ProducesResponseType( StatusCodes.Status404NotFound )]
         public async Task<IActionResult> CreateCardAsync( [FromBody] CardDto dto )
         {
@@ -73,6 +75,7 @@ namespace RapidPayApi.Controllers
         [ProducesResponseType( StatusCodes.Status200OK )]
         [ProducesResponseType( StatusCodes.Status204NoContent )]
         [ProducesResponseType( StatusCodes.Status400BadRequest )]
+        [ProducesResponseType( StatusCodes.Status401Unauthorized )]
         [ProducesResponseType( StatusCodes.Status404NotFound )]
         public async Task<IActionResult> PayTransaction( [FromBody] CardTransactionDto transactionDto )
         {
