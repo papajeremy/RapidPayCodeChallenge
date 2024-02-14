@@ -8,6 +8,19 @@ namespace RapidPayApi.Controllers
     [ApiController]
     public class RapidPayApiController : ControllerBase
     {
+        [HttpGet]
+        [ProducesResponseType( StatusCodes.Status200OK )]
+        [ProducesResponseType( StatusCodes.Status400BadRequest )]
+        [ProducesResponseType( StatusCodes.Status404NotFound )]
+        public async Task<IActionResult> GetCardBalance( string cardNumber )
+        {
+            if ( cardNumber == null ) return BadRequest();
+            var card = Card_Data.cardList.FirstOrDefault(c=>c.CardNumber == cardNumber );
+            if ( card == null ) return NotFound();
+            var cardBalance = card.Balance;
+            return Ok( cardBalance );
+        }
+
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -31,21 +44,14 @@ namespace RapidPayApi.Controllers
             dto.Id = Card_Data.cardList.OrderByDescending( c => c.Id ).FirstOrDefault().Id + 1;
             Card_Data.cardList.Add( dto );
             return Ok( StatusCodes.Status201Created );
-        }
+        }        
 
-        [HttpGet]
-        [ProducesResponseType( StatusCodes.Status200OK )]
+        [HttpPut]
+        [ProducesResponseType( StatusCodes.Status204NoContent )]
         [ProducesResponseType( StatusCodes.Status400BadRequest )]
-        [ProducesResponseType( StatusCodes.Status404NotFound )]
-        public async Task<IActionResult> GetCardBalance(string cardNumber )
+        public async Task<IActionResult> PayTransaction( string cardNumber, double transactionAmount )
         {
-            if ( cardNumber == null ) return BadRequest();
-            var card = Card_Data.cardList.FirstOrDefault(c=>c.CardNumber == cardNumber );
-            if ( card == null ) return NotFound();
-            var cardBalance = card.Balance;
-            return Ok( cardBalance );
+
         }
-
-
     }
 }
